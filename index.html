@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Intrusion Profiles Along x: Cohm Discussion</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #627084;
+      --line: #d9e0ea;
+      --line-strong: #b8c3d1;
+      --blue: #1769aa;
+      --green: #0b7f67;
+      --amber: #a6521a;
+      --shadow: 0 12px 30px rgba(30, 42, 60, 0.11);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button,
+    select {
+      font: inherit;
+    }
+
+    button {
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--line-strong);
+      background: #f9fbfd;
+    }
+
+    button.active {
+      border-color: var(--green);
+      background: #e9f7f3;
+      color: #075644;
+    }
+
+    select {
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 6px 9px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(245, 247, 250, 0.97);
+      backdrop-filter: blur(12px);
+    }
+
+    .header-inner,
+    main {
+      width: min(1640px, calc(100vw - 28px));
+      margin: 0 auto;
+    }
+
+    .header-inner {
+      padding: 14px 0 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 2.6vw, 31px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .status {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    .toolbar,
+    .group,
+    .chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar {
+      justify-content: space-between;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .segmented {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .segmented button {
+      border: 0;
+      border-right: 1px solid var(--line);
+      border-radius: 0;
+    }
+
+    .segmented button:last-child {
+      border-right: 0;
+    }
+
+    main {
+      padding: 14px 0 30px;
+    }
+
+    .summary,
+    .filters {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric {
+      min-width: 0;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 23px;
+      line-height: 1.1;
+    }
+
+    .metric span,
+    .path,
+    .tile-name {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .filters.two-column {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .filter-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .chip {
+      min-width: 48px;
+      justify-content: center;
+    }
+
+    .matrix {
+      display: grid;
+      gap: 10px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 66px repeat(var(--cols), minmax(260px, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .corner,
+    .axis-label {
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .axis-label.h {
+      min-height: 190px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #eef2f6;
+      color: #3f4b5d;
+    }
+
+    .cell {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .tile,
+    .missing {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .tile {
+      box-shadow: var(--shadow);
+      --media-ratio: 16 / 10;
+    }
+
+    .tile.contour {
+      border-top: 3px solid var(--blue);
+      --media-ratio: 2.25 / 1;
+      --media-fit: cover;
+    }
+
+    .tile.density {
+      border-top: 3px solid var(--green);
+      --media-ratio: 2.35 / 1;
+      --media-fit: cover;
+    }
+
+    .tile.selfsimilar {
+      border-top: 3px solid var(--amber);
+      --media-ratio: 16 / 10;
+    }
+
+    .tile-head {
+      min-height: 40px;
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .tile-title {
+      min-width: 0;
+      font-weight: 800;
+      font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .badge.contour {
+      background: #e8f2fb;
+      color: #0d5186;
+    }
+
+    .badge.density {
+      background: #e6f6f1;
+      color: #075644;
+    }
+
+    .badge.selfsimilar {
+      background: #fff0df;
+      color: #88410f;
+    }
+
+    video,
+    img.figure {
+      display: block;
+      width: 100%;
+      aspect-ratio: var(--media-ratio);
+      background: #f9fbfd;
+    }
+
+    video {
+      object-fit: var(--media-fit, contain);
+    }
+
+    img.figure {
+      object-fit: contain;
+      background: #f9fbfd;
+    }
+
+    .tile-foot {
+      min-height: 30px;
+      padding: 5px 8px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      border-top: 1px solid var(--line);
+    }
+
+    .path {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .error-text {
+      color: var(--amber);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .missing {
+      min-height: 190px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      color: var(--amber);
+      background: #fff8f1;
+      border-style: dashed;
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+    }
+
+    @media (max-width: 1050px) {
+      .filters {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .row {
+        grid-template-columns: 52px repeat(var(--cols), minmax(230px, 82vw));
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .axis-label.h {
+        min-height: 180px;
+      }
+    }
+  
+    .tile.t15, .tile.t33 { border-top: 3px solid #7a4fb0; --media-ratio: 1.95 / 1; }
+    .tile.t50 { border-top: 3px solid var(--blue); --media-ratio: 1.95 / 1; }
+    .tile.t100 { border-top: 3px solid var(--green); --media-ratio: 1.95 / 1; }
+    .tile.t120 { border-top: 3px solid var(--amber); --media-ratio: 1.95 / 1; }
+    .badge.t15, .badge.t33 { background: #f0e9f8; color: #5a3591; }
+    .badge.t50 { background: #e8f2fb; color: #0d5186; }
+    .badge.t100 { background: #e6f6f1; color: #075644; }
+    .badge.t120 { background: #fff0df; color: #88410f; }
+    .filters.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    @media (max-width: 1050px) { .filters.four { grid-template-columns: 1fr 1fr; } }
+    .panels { border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 12px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .panels code { color: var(--blue); }
+</style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="title-row">
+        <div>
+          <h1>Intrusion Profiles Along x</h1>
+          <div id="status" class="status"></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <div class="segmented" aria-label="View mode">
+            <button id="matrixMode" class="active" type="button">Matrix</button>
+            <button id="listMode" type="button">List</button>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <button id="playAll" type="button">Play</button>
+          <button id="pauseAll" type="button">Pause</button>
+          <button id="restartAll" type="button">Restart</button>
+          <div class="group">
+            <label for="speed">Speed</label>
+            <select id="speed">
+              <option value="0.25">0.25x</option>
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+              <option value="4">4x</option>
+            </select>
+          </div>
+          <button id="muteAll" class="active" type="button">Muted</button>
+          <button id="loopAll" class="active" type="button">Loop</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panels">
+      Each movie sweeps along the intrusion (x from 0 to the tip + 15) at a fixed time. Top row: <code>u</code>, <code>&part;u/&part;y</code>, <code>&part;&sup2;u/&part;y&sup2;</code>, colour function <code>b</code>.
+      Bottom row: density <code>c</code>, <code>&part;c/&part;y</code> (= &minus;N&sup2;; ambient &minus;1), <code>Ri<sub>g</sub></code> (dashed line at 1/4) and thickness <code>h(x)=&int;b dy</code> with a dot at the current x.
+      Red dotted line: h. Red circles: inflection points (zeros of &part;&sup2;u/&part;y&sup2;) in the shear layer.
+    </section>
+
+    <section class="summary" aria-label="Media summary">
+      <div class="metric"><strong id="caseCount">0</strong><span>H/W cases</span></div>
+      <div class="metric"><strong id="videoCount">0</strong><span>movies</span></div>
+      <div class="metric"><strong id="visibleCount">0</strong><span>visible movies</span></div>
+      <div class="metric"><strong id="typeCount">0</strong><span>times</span></div>
+    </section>
+
+    <section class="filters four">
+      <div><div class="filter-head"><label>H values</label><div class="group"><button id="allH" type="button">All</button><button id="noneH" type="button">None</button></div></div><div id="hChips" class="chips"></div></div>
+      <div><div class="filter-head"><label>W values</label><div class="group"><button id="allW" type="button">All</button><button id="noneW" type="button">None</button></div></div><div id="wChips" class="chips"></div></div>
+      <div><div class="filter-head"><label>Time t</label><div class="group"><button id="allT" type="button">All</button><button id="noneT" type="button">None</button></div></div><div id="tChips" class="chips"></div></div>
+      <div><div class="filter-head"><label>Reynolds number</label><div class="group"><button id="allR" type="button">All</button><button id="noneR" type="button">None</button></div></div><div id="rChips" class="chips"></div></div>
+    </section>
+
+    <section id="viewer" class="matrix" aria-label="Movie comparison grid"></section>
+  </main>
+
+  <script src="movies.js"></script>
+  <script>
+    const movies = window.MOVIES || [];
+    const numericSort = (a, b) => Number(a) - Number(b);
+    const uniq = (key) => [...new Set(movies.map((m) => m[key]))].sort(numericSort);
+    const state = {
+      hs: uniq("h"), ws: uniq("w"), ts: uniq("t"), rs: uniq("re"),
+      selectedH: new Set(), selectedW: new Set(), selectedT: new Set(), selectedR: new Set(),
+      mode: "matrix", muted: true, loop: true
+    };
+    state.selectedH = new Set(state.hs); state.selectedW = new Set(state.ws);
+    state.selectedT = new Set(state.ts); state.selectedR = new Set(state.rs);
+
+    const viewerEl = document.getElementById("viewer");
+    const speedSelect = document.getElementById("speed");
+    const matrixModeBtn = document.getElementById("matrixMode");
+    const listModeBtn = document.getElementById("listMode");
+    const muteAllBtn = document.getElementById("muteAll");
+    const loopAllBtn = document.getElementById("loopAll");
+
+    document.getElementById("status").textContent =
+      `${state.hs.length} H values, ${state.ws.length} W values, ${state.ts.length} times, ${state.rs.length} Reynolds numbers.`;
+
+    function renderChips(container, values, selectedSet, labelForValue) {
+      container.replaceChildren();
+      values.forEach((value) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = selectedSet.has(value) ? "chip active" : "chip";
+        button.textContent = labelForValue(value);
+        button.addEventListener("click", () => {
+          if (selectedSet.has(value)) selectedSet.delete(value); else selectedSet.add(value);
+          render();
+        });
+        container.appendChild(button);
+      });
+    }
+
+    const visibleMovies = () => movies.filter((m) =>
+      state.selectedH.has(m.h) && state.selectedW.has(m.w) && state.selectedT.has(m.t) && state.selectedR.has(m.re));
+
+    function makeTile(m) {
+      const tile = document.createElement("article");
+      tile.className = `tile t${m.t}`;
+      const head = document.createElement("div"); head.className = "tile-head";
+      const title = document.createElement("div"); title.className = "tile-title";
+      title.textContent = `H=${m.h}, W=${m.w}, Re=${m.re}`;
+      const badge = document.createElement("div"); badge.className = `badge t${m.t}`; badge.textContent = `t=${m.t}`;
+      head.append(title, badge);
+      const media = document.createElement("video");
+      media.src = m.path; media.controls = true; media.muted = state.muted; media.loop = state.loop;
+      media.playsInline = true; media.preload = "metadata"; media.playbackRate = Number(speedSelect.value);
+      const foot = document.createElement("div"); foot.className = "tile-foot";
+      const path = document.createElement("div"); path.className = "path"; path.title = m.path; path.textContent = m.path;
+      const error = document.createElement("div"); error.className = "error-text";
+      media.addEventListener("error", () => { error.textContent = "File not found"; });
+      foot.append(path, error);
+      tile.append(head, media, foot);
+      return tile;
+    }
+
+    function renderMatrix(current) {
+      viewerEl.className = "matrix";
+      const hs = state.hs.filter((h) => state.selectedH.has(h));
+      const ws = state.ws.filter((w) => state.selectedW.has(w));
+      viewerEl.style.setProperty("--cols", Math.max(1, ws.length));
+      viewerEl.replaceChildren();
+      const header = document.createElement("div"); header.className = "row";
+      const corner = document.createElement("div"); corner.className = "corner"; corner.textContent = "H / W";
+      header.appendChild(corner);
+      ws.forEach((w) => { const l = document.createElement("div"); l.className = "axis-label"; l.textContent = `W=${w}`; header.appendChild(l); });
+      viewerEl.appendChild(header);
+      hs.forEach((h) => {
+        const row = document.createElement("div"); row.className = "row";
+        const hl = document.createElement("div"); hl.className = "axis-label h"; hl.textContent = `H=${h}`; row.appendChild(hl);
+        ws.forEach((w) => {
+          const cell = document.createElement("div"); cell.className = "cell";
+          const here = current.filter((m) => m.h === h && m.w === w);
+          if (here.length) here.forEach((m) => cell.appendChild(makeTile(m)));
+          else { const miss = document.createElement("div"); miss.className = "missing"; miss.textContent = `No movie for H=${h}, W=${w}`; cell.appendChild(miss); }
+          row.appendChild(cell);
+        });
+        viewerEl.appendChild(row);
+      });
+    }
+
+    function renderList(current) {
+      viewerEl.className = "list"; viewerEl.replaceChildren();
+      current.forEach((m) => viewerEl.appendChild(makeTile(m)));
+    }
+
+    const videosOnPage = () => Array.from(document.querySelectorAll("video"));
+    function applyVideoSettings() {
+      videosOnPage().forEach((v) => { v.muted = state.muted; v.loop = state.loop; v.playbackRate = Number(speedSelect.value); });
+    }
+
+    function render() {
+      const current = visibleMovies();
+      document.getElementById("caseCount").textContent = new Set(movies.map((m) => m.h + "/" + m.w)).size;
+      document.getElementById("videoCount").textContent = movies.length;
+      document.getElementById("visibleCount").textContent = current.length;
+      document.getElementById("typeCount").textContent = state.ts.length;
+      renderChips(document.getElementById("hChips"), state.hs, state.selectedH, (v) => `H=${v}`);
+      renderChips(document.getElementById("wChips"), state.ws, state.selectedW, (v) => `W=${v}`);
+      renderChips(document.getElementById("tChips"), state.ts, state.selectedT, (v) => `t=${v}`);
+      renderChips(document.getElementById("rChips"), state.rs, state.selectedR, (v) => `Re=${v}`);
+      matrixModeBtn.classList.toggle("active", state.mode === "matrix");
+      listModeBtn.classList.toggle("active", state.mode === "list");
+      muteAllBtn.classList.toggle("active", state.muted); muteAllBtn.textContent = state.muted ? "Muted" : "Sound";
+      loopAllBtn.classList.toggle("active", state.loop); loopAllBtn.textContent = state.loop ? "Loop" : "Once";
+      if (state.mode === "matrix") renderMatrix(current); else renderList(current);
+    }
+
+    document.getElementById("playAll").addEventListener("click", () => { applyVideoSettings(); videosOnPage().forEach((v) => v.play().catch(() => {})); });
+    document.getElementById("pauseAll").addEventListener("click", () => videosOnPage().forEach((v) => v.pause()));
+    document.getElementById("restartAll").addEventListener("click", () => videosOnPage().forEach((v) => { v.currentTime = 0; }));
+    speedSelect.addEventListener("change", applyVideoSettings);
+    muteAllBtn.addEventListener("click", () => { state.muted = !state.muted; render(); });
+    loopAllBtn.addEventListener("click", () => { state.loop = !state.loop; render(); });
+    matrixModeBtn.addEventListener("click", () => { state.mode = "matrix"; render(); });
+    listModeBtn.addEventListener("click", () => { state.mode = "list"; render(); });
+    [["H", "hs", "selectedH"], ["W", "ws", "selectedW"], ["T", "ts", "selectedT"], ["R", "rs", "selectedR"]].forEach(([k, all, sel]) => {
+      document.getElementById("all" + k).addEventListener("click", () => { state[sel] = new Set(state[all]); render(); });
+      document.getElementById("none" + k).addEventListener("click", () => { state[sel].clear(); render(); });
+    });
+    render();
+  </script>
+</body>
+</html>
